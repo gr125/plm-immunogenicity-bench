@@ -1,0 +1,10 @@
+Disease,ID
+allergy,DOID:1205
+autoimmune,DOID:417
+cancer,DOID:14566
+infection,DOID:0050117
+bacterial infection,DOID:104
+fungal infection,DOID:1564
+parasitic infection,DOID:1398
+viral infection,DOID:934
+healthy,ONTIE:0003423

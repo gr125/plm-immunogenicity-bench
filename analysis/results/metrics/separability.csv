@@ -1,0 +1,15 @@
+embedding,label,n,silhouette,pseudo_F,p_value,R2,source
+protbert,immune_response,65408,0.0014,7.396,0.001,0.0018,analysis/out.txt
+protbertpep,immune_response,65408,0.0348,29.399,0.001,0.0073,analysis/out.txt
+pepbert_nf,immune_response,65408,0.0530,7.729,0.021,0.0019,analysis/out.txt
+pepbert_sol,immune_response,65408,-0.0052,80.734,0.001,0.0198,analysis/out.txt
+pepbert_hemo,immune_response,65408,0.0090,69.154,0.001,0.0170,analysis/out.txt
+esmc,immune_response,65408,0.0498,20.437,0.001,0.0051,analysis/out.txt
+esmcpep,immune_response,65408,-0.0102,18.222,0.001,0.0045,analysis/out.txt
+protbert,tax_domain,65408,0.0388,144.132,0.001,0.0467,analysis/out2.txt
+protbertpep,tax_domain,65408,0.0256,181.121,0.001,0.0580,analysis/out2.txt
+pepbert_nf,tax_domain,65408,-0.0274,76.120,0.001,0.0252,analysis/out2.txt
+pepbert_sol,tax_domain,65408,-0.0469,68.945,0.001,0.0229,analysis/out2.txt
+pepbert_hemo,tax_domain,65408,-0.0208,175.847,0.001,0.0564,analysis/out2.txt
+esmc,tax_domain,65408,0.3835,1589.416,0.001,0.3506,analysis/out2.txt
+esmcpep,tax_domain,65408,0.0826,49.870,0.001,0.0167,analysis/out2.txt
