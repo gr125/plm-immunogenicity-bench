@@ -400,36 +400,46 @@ def process_taxonomy_column(df, taxon_column='source_organism_taxon',
     return df
 
 # ============================================================================
-# USAGE EXAMPLE
+# CLI
 # ============================================================================
 
+def main(argv=None):
+    """Resolve the taxon column of the annotated table into 12 named ranks.
+
+    Reads data.annotated, writes data.taxonomy -- the input to every downstream
+    script. Lookups are cached in cache.taxonomy, so a rerun costs no NCBI
+    round-trips for taxa already seen.
+
+        python -m antigen_embedding.data.taxonomy
+    """
+    import argparse
+
+    from ..config import add_config_args, config_from_args
+    from ..io import write_table
+
+    parser = argparse.ArgumentParser(description=main.__doc__)
+    add_config_args(parser)
+    parser.add_argument("--taxon-column", default="source_organism_iri_search",
+                        help="column holding the {NCBITaxon:...} identifier set")
+    args = parser.parse_args(argv)
+    cfg = config_from_args(args)
+
+    src = cfg.path("data.annotated")
+    dst = cfg.path("data.taxonomy")
+    cache = cfg.path("cache.taxonomy")
+
+    print(f"reading  {src}")
+    df = pd.read_csv(src)
+    df = process_taxonomy_column(df, taxon_column=args.taxon_column,
+                                 cache_file=str(cache))
+    out = write_table(df, dst)
+    print(f"wrote    {out}  ({len(df)} rows)")
+
+    print("\nDomain distribution:")
+    print(df["tax_domain"].value_counts())
+    return 0
+
+
 if __name__ == "__main__":
-    
-    # Example 1: Load your data
-    path = '/mnt/bioadhoc/Groups/Peters/Self-similarity/'
-    data = pd.read_csv(path + 'data/data.csv')
-    
-    # Example 2: Process taxonomy column
-    # Cache file will be created automatically if it doesn't exist
-    data_with_taxonomy = process_taxonomy_column(
-        data, 
-        taxon_column='source_organism_taxon',  # Adjust to your column name
-        cache_file=path + 'analysis/taxonomy_cache.pkl'
-    )
-    
-    # Example 3: Save results
-    data_with_taxonomy.to_csv(path + 'data/data_with_taxonomy.csv', index=False)
-    
-    # Example 4: Quick analysis
-    print("\n=== Quick Analysis ===")
-    print("Domain distribution:")
-    print(data_with_taxonomy['tax_domain'].value_counts())
-    
-    print("\nTop families:")
-    print(data_with_taxonomy['tax_family'].value_counts().head(10))
-    
-    # Example 5: Filter for specific analysis
-    viral_data = data_with_taxonomy[data_with_taxonomy['tax_domain'] == 'Viruses']
-    print(f"\nViral epitopes: {len(viral_data)}")
-    print("Viral families:")
-    print(viral_data['tax_family'].value_counts())
+    import sys
+    sys.exit(main())

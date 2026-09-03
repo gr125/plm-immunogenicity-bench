@@ -1,0 +1,111 @@
+# The embedding registry: what each embedding is, where its pickle lives, and
+# how a peptide vector is derived from it.
+#
+# kind determines the derivation:
+#   vector         peptide-keyed 1-D vector, already pooled -- used as-is
+#   pool_peptide   peptide-keyed token array [pep_len, D] -> mean-pool
+#   slice_protein  protein-keyed token array [prot_len, D] -> slice the peptide
+#                  span [start-1 : end] -> mean-pool  (context-aware)
+#
+# `family` groups embeddings for figure output directories.
+# `pickle` paths resolve against the root in paths.yaml.
+
+embeddings:
+
+  protbert:
+    kind: slice_protein
+    family: protbert
+    pickle: analysis/ProtBert/results/data/token_representations.pkl
+    description: ProtBert, peptide sliced out of the parent protein's tokens.
+    job:
+      model: protbert
+      target: proteins            # embed unique antigen sequences
+      max_tokens_per_batch: 120000
+      min_batch_size: 2
+      max_batch_size: 1024
+      checkpoint_every: 500
+
+  protbertpep:
+    kind: pool_peptide
+    family: protbert
+    pickle: analysis/ProtBert/results/data/peptide_representations.pkl
+    description: ProtBert, peptide embedded in isolation, then mean-pooled.
+    job:
+      model: protbert
+      target: peptides            # embed unique peptides in isolation
+      max_tokens_per_batch: 120000
+      min_batch_size: 2
+      max_batch_size: 1024
+      checkpoint_every: 5000
+
+  pepbert_nf:
+    kind: vector
+    family: pepbert
+    pickle: analysis/PeptideBERT/nf-0828_0049_peptide_representations.pkl
+    description: PeptideBERT fine-tuned on non-fouling; pooled peptide vector.
+    job:
+      model: peptidebert
+      target: peptides
+      checkpoint: nf-0828_0049    # subdir of models.peptidebert_checkpoints
+      pool: mean                  # PeptideBERT writes pooled vectors directly
+      checkpoint_every: 5000
+
+  pepbert_sol:
+    kind: vector
+    family: pepbert
+    pickle: analysis/PeptideBERT/sol-0827_2316_peptide_representations.pkl
+    description: PeptideBERT fine-tuned on solubility; pooled peptide vector.
+    job:
+      model: peptidebert
+      target: peptides
+      checkpoint: sol-0827_2316
+      pool: mean
+      checkpoint_every: 5000
+
+  pepbert_hemo:
+    kind: vector
+    family: pepbert
+    pickle: analysis/PeptideBERT/hemo-0828_0039_peptide_representations.pkl
+    description: PeptideBERT fine-tuned on hemolysis; pooled peptide vector.
+    job:
+      model: peptidebert
+      target: peptides
+      checkpoint: hemo-0828_0039
+      pool: mean
+      checkpoint_every: 5000
+
+  esmc:
+    kind: slice_protein
+    family: esmc
+    pickle: analysis/ESM-embedding/results/data/token_representations.pkl
+    description: ESMC-300M, peptide sliced out of the parent protein's tokens.
+    job:
+      model: esmc
+      target: proteins
+      max_tokens_per_batch: 120000
+      min_batch_size: 1
+      max_batch_size: 512
+      checkpoint_every: 1000
+
+  esmcpep:
+    kind: pool_peptide
+    family: esmc
+    pickle: analysis/ESM-embedding/results/data/peptide_representations.pkl
+    description: ESMC-300M, peptide embedded in isolation, then mean-pooled.
+    job:
+      model: esmc
+      target: peptides
+      max_tokens_per_batch: 120000
+      min_batch_size: 1
+      max_batch_size: 1024
+      checkpoint_every: 5000
+
+# Display / iteration order for tables and figures.
+order:
+  - protbert
+  - protbertpep
+  - pepbert_nf
+  - pepbert_sol
+  - pepbert_hemo
+  - esmc
+  - esmcpep

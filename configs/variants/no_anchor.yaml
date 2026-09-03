@@ -1,0 +1,27 @@
+# Ablation: MHC class I, with the anchor residues trimmed off each peptide
+# before pooling (positions 1-2 and the C-terminal residue).
+# Replaces remove_anchor_points.py, which was the base script with
+# prot_emb[start+2:end-1] in place of prot_emb[start:end].
+#
+# Note: pepbert_* are `vector` embeddings -- already pooled upstream, so the
+# trim cannot reach them and their coordinates match the mhc_i variant. The
+# runner warns about this. They are listed because the original script did, and
+# because they are the control the trim is read against.
+extends: full.yaml
+name: no_anchor
+
+embeddings: [protbert, protbertpep, pepbert_sol]
+
+filters:
+  mhc_class: "I"
+
+slice:
+  trim_start: 2
+  trim_end: 1
+
+output:
+  umap_dir: results/umap/no_anchor
+  figures_dir: results/figures/no_anchor
+
+plots:
+  domains: [Viruses]

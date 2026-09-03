@@ -1,0 +1,65 @@
+# The main run: every embedding, every peptide, no ablation.
+# Replaces downstream_umap.py and downstream_umap_esmc.py.
+name: full
+
+# Which entries from configs/embeddings.yaml to run. Order follows `order:` there.
+embeddings: [protbert, protbertpep, pepbert_nf, pepbert_sol, pepbert_hemo, esmc, esmcpep]
+
+filters:
+  max_protein_length: 7000   # drop antigens longer than this before embedding lookup
+  mhc_class: null            # null = both classes; "I" or "II" to restrict
+  coord_ok: null             # null = keep every row, including the 13 whose antigen
+                             # coordinates do not locate the peptide (see data/README.md).
+                             # Set to 1 to drop them.
+
+slice:
+  # Residues trimmed off each end of the peptide before pooling. Applies to
+  # slice_protein and pool_peptide embeddings; `vector` embeddings arrive
+  # pre-pooled and are unaffected.
+  trim_start: 0
+  trim_end: 0
+
+# any = a row is kept if it has at least one requested embedding, and each
+#       embedding is reduced independently (partial pickles are safe).
+# all = intersection; every kept row has every requested embedding, so all
+#       methods are scored on an identical peptide set.
+require: any
+
+umap:
+  init: random
+  n_neighbors: 15
+  min_dist: 0.1
+  metric: euclidean
+  random_state: null   # set an int for reproducible coordinates (forces single-threaded)
+  standardize: true    # StandardScaler before UMAP
+
+output:
+  umap_dir: results/umap          # writes umap_<embedding>.csv.gz
+  figures_dir: results/figures
+  overwrite: false                # false = reuse an existing CSV and only redraw figures
+
+plots:
+  enabled: true
+  domains: [Viruses, Eukaryota, Bacteria]
+  figsize: 40
+  min_kde_points: 10
+
+separability:
+  # Labels scored, each on the same peptides with the same metric. The contrast
+  # between them is the result: immunogenicity never clears 2% of variance,
+  # taxonomy reaches 35%.
+  labels: [immune_response, tax_domain]
+  require: all          # intersection, so every method sees an identical set
+  permutations: 999
+  subsample_per_group: 2000   # PERMANOVA is O(n^2) in memory; drawn ONCE per label
+  random_state: 0
+  l2_normalize: true
+  silhouette: true
+  # Silhouette builds a full n x n cosine distance matrix: at n = 65,408 that is
+  # 34 GB, which is what the original cluster job allocated. Set an integer here
+  # to score it on a subsample instead (the PERMANOVA subsample is separate and
+  # always applied). null reproduces the published numbers.
+  silhouette_subsample: null
+  fisher: true          # pairwise Fisher discriminant ratios -> a second CSV
+  out_csv: results/metrics/separability.csv
+  fisher_csv: results/metrics/fisher_pairs.csv
