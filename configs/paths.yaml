@@ -10,6 +10,13 @@
 #   root: /mnt/bioadhoc/Groups/Peters/Self-similarity
 root: null
 
+# Where the embedding pickles live, if not under `root`. This is the cluster
+# case: the repo is a ~20 MB clone anywhere you like, while the 19 GB of
+# pickles stay in the original tree. Overridden by $ANTIGEN_EMBEDDING_PICKLES
+# or --pickles-root. null means "same as root".
+#   embeddings_root: /mnt/bioadhoc/Groups/Peters/Self-similarity
+embeddings_root: null
+
 data:
   # Normalized tables committed to the repo (see data/README.md).
   epitopes:  data/epitopes.csv.gz            # one row per peptide-MHC-antigen; protein_id FK

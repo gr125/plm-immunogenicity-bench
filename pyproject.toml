@@ -26,6 +26,7 @@ dependencies = [
 embed = ["torch", "transformers", "esm"]
 
 [project.scripts]
+ae-check = "antigen_embedding.check:main"
 ae-umap = "antigen_embedding.analysis.umap_runner:main"
 ae-separability = "antigen_embedding.analysis.separability:main"
 ae-taxonomy = "antigen_embedding.data.taxonomy:main"

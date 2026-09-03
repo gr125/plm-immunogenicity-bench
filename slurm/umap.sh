@@ -10,6 +10,8 @@ set -euo pipefail
 
 # The one path this repo needs. Everything else comes from configs/paths.yaml.
 export ANTIGEN_EMBEDDING_ROOT="${ANTIGEN_EMBEDDING_ROOT:-/mnt/bioadhoc/Groups/Peters/Self-similarity}"
+# Set this when the repo clone and the embedding pickles are in different trees.
+export ANTIGEN_EMBEDDING_PICKLES="${ANTIGEN_EMBEDDING_PICKLES:-$ANTIGEN_EMBEDDING_ROOT}"
 cd "$ANTIGEN_EMBEDDING_ROOT"
 mkdir -p logs
 

@@ -5,6 +5,8 @@ one variable and nothing else needs editing:
 
 ```bash
 export ANTIGEN_EMBEDDING_ROOT=/mnt/bioadhoc/Groups/Peters/Self-similarity
+# only if the repo clone and the pickles are in different trees:
+export ANTIGEN_EMBEDDING_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity
 ```
 
 That replaces the `path = '/mnt/bioadhoc/...'` line that used to sit at the top
@@ -18,6 +20,9 @@ else on the command line with `--variant` or `--set key=value`.
 | `embed_peptidebert.sh` | the three fine-tuned PeptideBERT checkpoints | yes |
 | `umap.sh` | the UMAP runner for one variant | no |
 | `separability.sh` | silhouette / PERMANOVA / Fisher | no |
+
+Before submitting anything, run `python -m antigen_embedding.check` on a login
+node to confirm the paths resolve.
 
 The embedders checkpoint atomically and resume, so a job that hits its time
 limit can simply be resubmitted.

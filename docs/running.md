@@ -10,6 +10,19 @@ pip install -e .            # analysis only
 pip install -e '.[embed]'   # + torch / transformers / esm, to regenerate embeddings
 ```
 
+## Preflight
+
+```bash
+python -m antigen_embedding.check            # paths and sizes, <1 s
+python -m antigen_embedding.check --deep     # + key counts and vector shapes
+python -m antigen_embedding.check --coverage # + rows a real run would keep
+```
+
+Run this first on any new machine. It prints the resolved roots, which data
+tables and pickles exist, and what is missing — the fastest way to find a wrong
+path before a job burns an allocation. `--deep` loads every pickle, so it is
+slow and memory-hungry where the ProtBert protein pickle is 11 GB.
+
 ## Point it at a machine
 
 The repository root is resolved in this order:
@@ -27,6 +40,24 @@ export ANTIGEN_EMBEDDING_ROOT=/mnt/bioadhoc/Groups/Peters/Self-similarity
 
 That single variable replaces the `path = '/mnt/bioadhoc/...'` line that used to
 open all eleven scripts.
+
+### When the repo and the pickles live apart
+
+The normalized `data/*.csv.gz` tables live in this repo; the 19 GB of embedding
+pickles live in the original cluster tree. `embeddings_root` keeps them
+separate, so you can clone the repo anywhere and still read the pickles in
+place:
+
+```bash
+export ANTIGEN_EMBEDDING_ROOT=~/antigen-embedding                     # the clone
+export ANTIGEN_EMBEDDING_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity
+```
+
+or, equivalently, `--root` / `--pickles-root` on any command, or
+`embeddings_root:` in `configs/paths.yaml`. Paths under `embeddings:` in
+`configs/embeddings.yaml` resolve against the pickles root; everything else
+resolves against the repository root. Absolute paths in either file are used
+as-is.
 
 ## Regenerate the figures — no embeddings needed
 

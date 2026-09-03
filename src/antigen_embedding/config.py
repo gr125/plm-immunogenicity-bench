@@ -34,6 +34,7 @@ _REPO_ROOT = _PACKAGE_ROOT.parent.parent
 DEFAULT_CONFIG_DIR = _REPO_ROOT / "configs"
 
 ENV_ROOT = "ANTIGEN_EMBEDDING_ROOT"
+ENV_PICKLES = "ANTIGEN_EMBEDDING_PICKLES"
 
 
 def _read_yaml(path: Path) -> dict:
@@ -83,6 +84,9 @@ class Config:
     paths: dict
     embeddings: dict
     variant: dict = field(default_factory=dict)
+    # Where embedding pickles live. Separate from `root` so a clone of this
+    # repo can read pickles that stayed behind in the original tree.
+    embeddings_root: Path | None = None
 
     # -- paths -------------------------------------------------------------
 
@@ -94,6 +98,13 @@ class Config:
     def path(self, dotted: str) -> Path:
         """Resolve a dotted key from paths.yaml, e.g. 'data.epitopes'."""
         return self.resolve(_dig(self.paths, dotted))
+
+    def resolve_pickle(self, value: str | os.PathLike) -> Path:
+        """Resolve an embedding pickle against embeddings_root, else root."""
+        p = Path(value)
+        if p.is_absolute():
+            return p
+        return (self.embeddings_root or self.root) / p
 
     def out_dir(self, dotted: str) -> Path:
         """Resolve a dotted key from the variant's `output:` block and mkdir it."""
@@ -110,7 +121,7 @@ class Config:
             known = ", ".join(sorted(self.embeddings["embeddings"]))
             raise KeyError(f"unknown embedding {name!r}; known: {known}") from None
         spec = dict(spec, name=name)
-        spec["pickle"] = self.resolve(spec["pickle"])
+        spec["pickle"] = self.resolve_pickle(spec["pickle"])
         return spec
 
     def selected_embeddings(self) -> list[str]:
@@ -133,6 +144,7 @@ def load_config(
     root: str | os.PathLike | None = None,
     config_dir: str | os.PathLike | None = None,
     overrides: dict[str, Any] | None = None,
+    pickles_root: str | os.PathLike | None = None,
 ) -> Config:
     """Load paths.yaml, embeddings.yaml and one variant into a Config.
 
@@ -140,6 +152,9 @@ def load_config(
               file. None loads paths and the registry only.
     root      overrides the repository root (highest precedence after the
               environment variable).
+    pickles_root
+              overrides where embedding pickles are looked up, so a clone can
+              read pickles left behind in another tree.
     overrides dotted variant keys to override, e.g. {"slice.trim_start": 2}.
     """
     cdir = Path(config_dir) if config_dir else DEFAULT_CONFIG_DIR
@@ -149,6 +164,7 @@ def load_config(
     registry = _read_yaml(cdir / "embeddings.yaml")
 
     resolved_root = _resolve_root(root, paths, cdir)
+    resolved_pickles = _resolve_pickles(pickles_root, paths, resolved_root)
 
     variant_cfg = _load_variant(variant, cdir) if variant is not None else {}
     for dotted, value in (overrides or {}).items():
@@ -160,6 +176,7 @@ def load_config(
         paths=paths,
         embeddings=registry,
         variant=variant_cfg,
+        embeddings_root=resolved_pickles,
     )
 
 
@@ -173,6 +190,20 @@ def _resolve_root(root, paths: dict, config_dir: Path) -> Path:
     if declared and Path(declared).is_absolute():
         return Path(declared).resolve()
     return config_dir.parent
+
+
+def _resolve_pickles(pickles_root, paths: dict, root: Path) -> Path:
+    """Where embedding pickles live; falls back to the repository root."""
+    if pickles_root:
+        return Path(pickles_root).expanduser().resolve()
+    env = os.environ.get(ENV_PICKLES)
+    if env:
+        return Path(env).expanduser().resolve()
+    declared = paths.get("embeddings_root")
+    if declared:
+        p = Path(declared)
+        return p.resolve() if p.is_absolute() else (root / p)
+    return root
 
 
 def _load_variant(variant, config_dir: Path, _seen: set | None = None) -> dict:
@@ -216,6 +247,11 @@ def add_config_args(parser) -> None:
         help=f"repository root (overrides ${ENV_ROOT} and configs/paths.yaml)",
     )
     parser.add_argument(
+        "--pickles-root", default=None,
+        help=f"where embedding pickles live, if not under --root "
+             f"(overrides ${ENV_PICKLES} and configs/paths.yaml)",
+    )
+    parser.add_argument(
         "--config-dir", default=None,
         help="directory holding paths.yaml, embeddings.yaml and variants/",
     )
@@ -239,4 +275,5 @@ def config_from_args(args) -> Config:
         root=getattr(args, "root", None),
         config_dir=getattr(args, "config_dir", None),
         overrides=overrides,
+        pickles_root=getattr(args, "pickles_root", None),
     )
