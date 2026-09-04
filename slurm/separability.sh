@@ -8,18 +8,22 @@
 #SBATCH --output=logs/job-%j.out
 set -euo pipefail
 
-# The one path this repo needs. Everything else comes from configs/paths.yaml.
-export PLMBENCH_ROOT="${PLMBENCH_ROOT:-/mnt/bioadhoc/Groups/Peters/Self-similarity}"
-# Set this when the repo clone and the embedding pickles are in different trees.
-export PLMBENCH_PICKLES="${PLMBENCH_PICKLES:-$PLMBENCH_ROOT}"
-cd "$PLMBENCH_ROOT"
-mkdir -p logs
-
-eval "$(/mnt/BioAdHoc/Groups/Peters/Self-similarity/tools/miniconda3/bin/conda shell.bash hook)"
-# No install needed: run the package straight out of src/. Works on any pip.
-export PYTHONPATH="$PLMBENCH_ROOT/src:${PYTHONPATH:-}"
-
-conda activate "${CONDA_ENV:-ProtBert}"
+# Self-contained: no conda, no named environment, no hardcoded cluster path.
+# SLURM copies this script to a spool dir, so the repo is located from
+# $SLURM_SUBMIT_DIR (submit from the repo root) and falls back to this file's
+# own directory when run outside SLURM. Override anything explicitly:
+#
+#   PLMBENCH_ROOT=~/plm-immunogenicity-bench \
+#   PLMBENCH_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity \
+#       sbatch slurm/separability.sh
+export PLMBENCH_ROOT="${PLMBENCH_ROOT:-${SLURM_SUBMIT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}}"
+if [ ! -f "$PLMBENCH_ROOT/slurm/env.sh" ]; then
+    echo "ERROR: no slurm/env.sh under PLMBENCH_ROOT=$PLMBENCH_ROOT" >&2
+    echo "       Submit from the repository root (sbatch reads \$SLURM_SUBMIT_DIR)," >&2
+    echo "       or set PLMBENCH_ROOT to the clone explicitly." >&2
+    exit 1
+fi
+source "$PLMBENCH_ROOT/slurm/env.sh"
 
 # 120g: the silhouette distance matrix is ~34 GB at n = 65,408. Bound it with
 # --set separability.silhouette_subsample=20000 to fit a smaller allocation.

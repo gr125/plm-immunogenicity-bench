@@ -4,13 +4,28 @@ Everything reads `configs/`. No script contains a filesystem path.
 
 ## Install
 
+One command, no conda and no pre-existing environment:
+
 ```bash
-python -m venv .venv && source .venv/bin/activate
-pip install -e .            # analysis only
-pip install -e '.[embed]'   # + torch / transformers / esm, to regenerate embeddings
+bash slurm/bootstrap.sh              # analysis dependencies
+bash slurm/bootstrap.sh --embed      # + torch / transformers / esm
 ```
 
-### No install (any pip, any conda env)
+It builds `.venv/` from the newest Python >= 3.10 available, upgrades pip inside
+it, installs the project and verifies every import. Every SLURM script then
+finds that venv automatically. Override the interpreter or location with
+`PLMBENCH_PYTHON` / `PLMBENCH_VENV`, and pip's source with `PIP_ARGS` on an
+offline cluster.
+
+By hand, if you prefer:
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+python -m pip install --upgrade pip     # needed if the system pip is < 21.3
+pip install -e .
+```
+
+### No install at all (any pip, any environment)
 
 `pip install -e .` on a `pyproject.toml`-only project needs **pip >= 21.3**.
 Older pip reports `Directory '.' is not installable. File 'setup.py' not
