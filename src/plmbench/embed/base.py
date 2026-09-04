@@ -14,8 +14,9 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+import pandas as pd
+
 from ..config import Config, add_config_args, config_from_args
-from ..data.loader import load_epitopes
 from ..io import CheckpointWriter, resume_dict
 
 
@@ -44,13 +45,31 @@ def make_batches(lengths, max_tokens: int, min_bs: int, max_bs: int):
 def sequences_to_embed(cfg: Config, target: str) -> np.ndarray:
     """The unique sequences for a job, sorted by length (short first).
 
-    target='proteins' -> unique antigen sequences, honouring
-    filters.max_protein_length; 'peptides' -> unique linear_sequence values.
-    Both are deduplicated because every pickle here is keyed on the sequence.
+    Deliberately ignores the variant's row filters. A pickle is keyed on the
+    sequence and shared by every variant, so embedding under `--variant mhc_i`
+    must not write a partial file that silently caps the `full` run. The
+    analysis filters rows; the embedders cover the whole dataset.
+
+    target='proteins'  unique antigen sequences shorter than
+                       filters.max_protein_length -- a real model/memory
+                       constraint, and the only filter applied here. Antigens
+                       with no epitope rows are skipped: 33 of them, none ever
+                       used downstream.
+    target='peptides'  unique linear_sequence values, with **no** protein-length
+                       filter -- a peptide embedded in isolation does not depend
+                       on its parent protein, and filtering by it would drop
+                       1,055 peptides for no reason.
     """
-    df = load_epitopes(cfg)
+    epi = pd.read_csv(cfg.path("data.epitopes"))
+    prot = pd.read_csv(cfg.path("data.proteins"))
+    df = epi.merge(prot[["protein_id", "protein_sequence"]], on="protein_id", how="left")
+
     if target == "proteins":
-        seqs = df.dropna(subset=["protein_sequence"])["protein_sequence"]
+        df = df.dropna(subset=["protein_sequence"])
+        max_plen = (cfg.get("filters", {}) or {}).get("max_protein_length")
+        if max_plen is not None:
+            df = df.loc[df["protein_sequence"].str.len() < max_plen]
+        seqs = df["protein_sequence"]
     elif target == "peptides":
         seqs = df.dropna(subset=["linear_sequence"])["linear_sequence"]
     else:
