@@ -61,12 +61,16 @@ matched set of 65,408 peptides scored identically across all seven embeddings:
 | Embedding | Immune response R² | Taxonomy R² |
 |---|---:|---:|
 | `protbert` | 0.0018 | 0.0467 |
-| `protbertpep` | 0.0073 | 0.0580 |
+| `protbertpep` † | 0.0073 | 0.0580 |
 | `pepbert_nf` | 0.0019 | 0.0252 |
 | `pepbert_sol` | 0.0198 | 0.0229 |
 | `pepbert_hemo` | 0.0170 | 0.0564 |
 | `esmc` | 0.0051 | 0.3506 |
 | `esmcpep` | 0.0045 | 0.0167 |
+
+† `protbertpep`'s embeddings were mean-pooled over padding tokens for 99.7% of peptides
+(a batching bug in the original embedder, since fixed). That row will change when the
+pickle is regenerated; the others are unaffected.
 
 No embedding explains more than 2% of immunogenicity variance. Silhouette scores sit
 between −0.05 and +0.05 throughout, several of them negative. Taxonomy, scored the same
@@ -74,10 +78,10 @@ way on the same peptides, reaches 35%. Embedding in protein context rather than
 peptide-alone does not help.
 
 Full metrics — silhouette, pairwise Fisher ratios, pseudo-F, p-values — in
-[`analysis/results/metrics/separability.csv`](analysis/results/metrics/separability.csv).
-Per-domain figures in [`analysis/results/plots/`](analysis/results/plots/).
+[`results/metrics/separability.csv`](results/metrics/separability.csv).
+Per-domain figures in [`results/figures/`](results/figures/).
 
-![ESMC embedding coloured by immune response](analysis/results/plots/immune_response/esmc/plot_esmc_immuneresponse.png)
+![ESMC embedding coloured by immune response](results/figures/immune_response/esmc/plot_esmc_immuneresponse.png)
 
 **Working conclusion:** at ≤25 aa, peptide sequence alone may simply not carry enough information for
 this task. What biological signal is missing — MHC binding geometry, TCR contact
@@ -127,22 +131,32 @@ Filter `coord_ok == 1` before slicing.
 ## Layout
 
 ```
-data/                    committed, gzipped, ~5 MB — pipeline starts here
+configs/                 every path and parameter; no script hardcodes one
+  paths.yaml               roots, data tables, model caches
+  embeddings.yaml          the 7 embeddings: where each pickle is, how to pool it
+  variants/                full.yaml, mhc_i.yaml, no_anchor.yaml
+
+data/                    committed, gzipped, ~5 MB — the pipeline starts here
   epitopes.csv.gz          30,379 peptide-MHC-antigen rows
   proteins.csv.gz          4,966 unique source proteins, keyed by content hash
   antigens.csv.gz          IEDB antigen IRI → protein_id
   epitopes_taxonomy.csv.gz assay-level rows + 12 ranks of NCBI taxonomy
 
-analysis/
-  ESM-embedding/         ESMC embedders (protein- and peptide-level) + SLURM scripts
-  ProtBert/              ProtBert embedders
-  PeptideBERT/           PeptideBERT fine-tuning and embedding
-  taxonomy.py            NCBI Taxonomy resolution, 12 ranks, cached
-  downstream_umap*.py    UMAP drivers
-  downstream_similarity.py  silhouette / Fisher / PERMANOVA
-  results/{metrics,umap,plots}/
+src/plmbench/
+  config.py  io.py         config loading; atomic write, resume, checkpointing
+  data/                    loader.py (one loader for everything), taxonomy.py
+  embed/                   esmc.py, protbert.py, peptidebert.py on a shared base
+  analysis/                umap_runner.py, separability.py, plots.py
+  check.py                 preflight: what does this machine actually have?
 
-results/qc/              duplicate rows, coordinate mismatches
+results/                 committed
+  umap/                    slim coordinate tables, 12 MB — figures regenerate from these
+  figures/                 58 PNGs, by label and model family
+  metrics/                 separability.csv
+  qc/                      duplicate rows, coordinate mismatches
+
+slurm/                   bootstrap.sh builds the venv; the rest are job templates
+docs/running.md          how to run it
 ```
 
 Model weights and per-residue representations are not committed: 19 GB of regenerable
@@ -150,28 +164,55 @@ intermediates plus 3 GB of downloadable checkpoints. See [`.gitignore`](.gitigno
 
 ## Reproducing
 
-Embeddings need a GPU; the analysis does not.
+Every path and parameter lives in `configs/`. The analysis needs no GPU, and no
+embeddings — the UMAP coordinates are committed.
 
 ```bash
-bash analysis/ESM-embedding/environment.sh   # per model — conflicting dependency sets
-sbatch analysis/ESM-embedding/run_GPU.sh     # embed
-python analysis/downstream_umap_esmc.py      # UMAP + figures
-python analysis/downstream_similarity.py     # separability metrics
+bash slurm/bootstrap.sh                        # builds .venv, no conda needed
+source slurm/env.sh
+
+python -m plmbench.check                       # what's present on this machine
+python -m plmbench.analysis.umap_runner --plots-only   # all 58 figures, from the repo alone
+```
+
+With the embedding pickles available, the full pipeline and its two ablations:
+
+```bash
+export PLMBENCH_PICKLES=/path/to/the/pickles
+
+python -m plmbench.analysis.umap_runner --variant full
+python -m plmbench.analysis.umap_runner --variant mhc_i      # class I only
+python -m plmbench.analysis.umap_runner --variant no_anchor  # anchor residues trimmed
+python -m plmbench.analysis.separability
+```
+
+Regenerating embeddings needs a GPU (`bash slurm/bootstrap.sh --embed`) and is the only
+step that does:
+
+```bash
+sbatch slurm/embed_esmc.sh        # or embed_protbert.sh, embed_peptidebert.sh
 ```
 
 Embedders checkpoint atomically and resume, so an interrupted job restarts where it
-stopped.
+stopped. Details, including how to add an eighth embedding, in
+[`docs/running.md`](docs/running.md).
 
 ## Status
 
-Mid-refactor from the original cluster layout. Done: data normalised and committed,
-UMAP outputs reduced from 9.2 GB to 12 MB, mirror trees collapsed, secrets removed.
+The pipeline is config-driven and runs from a clone. Four forked UMAP drivers became one
+runner plus three variant files, so the MHC-I and anchor-trim runs read as ablations
+rather than as copies; the eleven scripts that hardcoded a cluster path no longer do;
+and the SLURM templates build their own environment.
 
 Outstanding:
 
-- Paths are hardcoded to `/mnt/bioadhoc/Groups/Peters/Self-similarity/`; moving to `configs/paths.yaml` is next
-- Four near-duplicate UMAP drivers should be one runner plus variant configs, which would also make the MHC-I and anchor-residue-trimming runs legible as ablations
-- `separability.csv` was parsed from a previous run's stdout; regenerate it from `downstream_similarity.py`
+- `results/metrics/separability.csv` was parsed from a previous run's stdout. Regenerate
+  it with `python -m plmbench.analysis.separability`.
+- Regenerate the `protbertpep` pickle — see the footnote under Results — and expect that
+  row to move.
+- `docs/findings.md`: `esmc` reaches R² 0.3506 on taxonomy, 6× the next best, and it is
+  not simply a context artifact, since `protbert` is sliced identically and reaches
+  0.0467. Unexplained, and worth writing down.
 
 ## References
 
