@@ -410,7 +410,7 @@ def main(argv=None):
     script. Lookups are cached in cache.taxonomy, so a rerun costs no NCBI
     round-trips for taxa already seen.
 
-        python -m antigen_embedding.data.taxonomy
+        python -m plmbench.data.taxonomy
     """
     import argparse
 

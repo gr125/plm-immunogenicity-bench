@@ -8,9 +8,9 @@ printing a frame that had to be parsed back out of a job log.
 
 Usage:
 
-    python -m antigen_embedding.analysis.separability
-    python -m antigen_embedding.analysis.separability --variant mhc_i
-    python -m antigen_embedding.analysis.separability --labels tax_domain \
+    python -m plmbench.analysis.separability
+    python -m plmbench.analysis.separability --variant mhc_i
+    python -m plmbench.analysis.separability --labels tax_domain \
         --set separability.permutations=99
 """
 

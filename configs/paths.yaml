@@ -2,17 +2,17 @@
 #
 # Paths are relative to the repository root unless they are absolute. The root
 # is resolved in this order:
-#   1. $ANTIGEN_EMBEDDING_ROOT
+#   1. $PLMBENCH_ROOT
 #   2. the `root:` key below, if it is an absolute path
 #   3. the directory containing configs/ (i.e. the repo itself)
 #
-# On the cluster, either export ANTIGEN_EMBEDDING_ROOT or set:
+# On the cluster, either export PLMBENCH_ROOT or set:
 #   root: /mnt/bioadhoc/Groups/Peters/Self-similarity
 root: null
 
 # Where the embedding pickles live, if not under `root`. This is the cluster
 # case: the repo is a ~20 MB clone anywhere you like, while the 19 GB of
-# pickles stay in the original tree. Overridden by $ANTIGEN_EMBEDDING_PICKLES
+# pickles stay in the original tree. Overridden by $PLMBENCH_PICKLES
 # or --pickles-root. null means "same as root".
 #   embeddings_root: /mnt/bioadhoc/Groups/Peters/Self-similarity
 embeddings_root: null

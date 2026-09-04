@@ -6,7 +6,7 @@ coded `./checkpoints/<name>/`, and had to be run from inside the vendored fork.
 The checkpoint now comes from the `job.checkpoint` key in
 configs/embeddings.yaml, so the embedding name selects the model:
 
-    python -m antigen_embedding.embed.peptidebert pepbert_sol pepbert_nf pepbert_hemo
+    python -m plmbench.embed.peptidebert pepbert_sol pepbert_nf pepbert_hemo
 
 Unlike the ProtBert and ESMC embedders, this writes **pooled 1-D vectors**
 ({peptide: np.ndarray [D]}), matching `kind: vector` in the registry -- the

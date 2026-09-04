@@ -4,9 +4,9 @@ Every script takes its paths from `configs/paths.yaml`, so these templates set
 one variable and nothing else needs editing:
 
 ```bash
-export ANTIGEN_EMBEDDING_ROOT=/mnt/bioadhoc/Groups/Peters/Self-similarity
+export PLMBENCH_ROOT=/mnt/bioadhoc/Groups/Peters/Self-similarity
 # only if the repo clone and the pickles are in different trees:
-export ANTIGEN_EMBEDDING_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity
+export PLMBENCH_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity
 ```
 
 That replaces the `path = '/mnt/bioadhoc/...'` line that used to sit at the top
@@ -21,11 +21,11 @@ else on the command line with `--variant` or `--set key=value`.
 | `umap.sh` | the UMAP runner for one variant | no |
 | `separability.sh` | silhouette / PERMANOVA / Fisher | no |
 
-These templates set `PYTHONPATH="$ANTIGEN_EMBEDDING_ROOT/src"` themselves, so
+These templates set `PYTHONPATH="$PLMBENCH_ROOT/src"` themselves, so
 nothing needs to be pip-installed. Before submitting anything, run
 
 ```bash
-PYTHONPATH=$ANTIGEN_EMBEDDING_ROOT/src python -m antigen_embedding.check
+PYTHONPATH=$PLMBENCH_ROOT/src python -m plmbench.check
 ```
 
 on a login node to confirm the paths resolve.

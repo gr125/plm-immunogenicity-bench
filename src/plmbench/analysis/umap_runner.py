@@ -11,12 +11,12 @@ configuration:
 
 Usage:
 
-    python -m antigen_embedding.analysis.umap_runner --variant full
-    python -m antigen_embedding.analysis.umap_runner --variant no_anchor
-    python -m antigen_embedding.analysis.umap_runner --variant mhc_i \
+    python -m plmbench.analysis.umap_runner --variant full
+    python -m plmbench.analysis.umap_runner --variant no_anchor
+    python -m plmbench.analysis.umap_runner --variant mhc_i \
         --only protbert --set umap.random_state=0
     # redraw figures from the committed coordinates, no pickles needed:
-    python -m antigen_embedding.analysis.umap_runner --plots-only
+    python -m plmbench.analysis.umap_runner --plots-only
 
 The invariant that keeps this repo small: **embedding columns are never
 written**. The output holds the join keys, the label columns, X and Y. That is

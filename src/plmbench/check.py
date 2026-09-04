@@ -5,9 +5,9 @@ Reports the resolved roots, which data tables and embedding pickles exist, how
 many keys each pickle holds and what shape its values are, and how many
 peptides each embedding would cover -- without fitting anything.
 
-    python -m antigen_embedding.check                  # fast: paths and sizes
-    python -m antigen_embedding.check --deep           # + key counts and shapes
-    python -m antigen_embedding.check --coverage       # + rows a real run keeps
+    python -m plmbench.check                  # fast: paths and sizes
+    python -m plmbench.check --deep           # + key counts and shapes
+    python -m plmbench.check --coverage       # + rows a real run keeps
 
 Run this first on a new machine. It is the fastest way to find out that a path
 is wrong, and `--coverage` tells you how many rows a real run would keep.

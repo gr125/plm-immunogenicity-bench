@@ -3,14 +3,14 @@
 Every script in this package takes its paths and parameters from configs/,
 never from a hardcoded prefix. Loading is:
 
-    from antigen_embedding.config import load_config
+    from plmbench.config import load_config
     cfg = load_config(variant="no_anchor")
     cfg.path("data.epitopes")          -> /abs/path/data/epitopes.csv.gz
     cfg.variant["slice"]["trim_start"] -> 2
 
 The repository root is resolved once, in this order:
 
-    1. $ANTIGEN_EMBEDDING_ROOT
+    1. $PLMBENCH_ROOT
     2. an explicit root= argument
     3. an absolute `root:` in configs/paths.yaml
     4. the parent of the configs/ directory
@@ -28,13 +28,13 @@ from typing import Any
 
 import yaml
 
-# .../src/antigen_embedding/config.py -> repo root is three levels up
+# .../src/plmbench/config.py -> repo root is three levels up
 _PACKAGE_ROOT = Path(__file__).resolve().parent
 _REPO_ROOT = _PACKAGE_ROOT.parent.parent
 
-ENV_ROOT = "ANTIGEN_EMBEDDING_ROOT"
-ENV_PICKLES = "ANTIGEN_EMBEDDING_PICKLES"
-ENV_CONFIG = "ANTIGEN_EMBEDDING_CONFIG"
+ENV_ROOT = "PLMBENCH_ROOT"
+ENV_PICKLES = "PLMBENCH_PICKLES"
+ENV_CONFIG = "PLMBENCH_CONFIG"
 
 
 def default_config_dir() -> Path:

@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "antigen-embedding"
+name = "plm-immunogenicity-bench"
 version = "0.1.0"
 description = "Do protein language model embeddings separate immunogenic from non-immunogenic antigens?"
 readme = "README.md"
@@ -26,10 +26,10 @@ dependencies = [
 embed = ["torch", "transformers", "esm"]
 
 [project.scripts]
-ae-check = "antigen_embedding.check:main"
-ae-umap = "antigen_embedding.analysis.umap_runner:main"
-ae-separability = "antigen_embedding.analysis.separability:main"
-ae-taxonomy = "antigen_embedding.data.taxonomy:main"
+plmbench-check = "plmbench.check:main"
+plmbench-umap = "plmbench.analysis.umap_runner:main"
+plmbench-separability = "plmbench.analysis.separability:main"
+plmbench-taxonomy = "plmbench.data.taxonomy:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

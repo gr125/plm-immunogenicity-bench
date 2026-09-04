@@ -8,7 +8,7 @@ differed only in which column they read and which pickle they wrote -- both now
 Output is {sequence: np.ndarray [len, D]} with <BOS>/<EOS> stripped, so it maps
 straight onto data['protein_sequence'] or data['linear_sequence'] downstream.
 
-    python -m antigen_embedding.embed.esmc esmc esmcpep
+    python -m plmbench.embed.esmc esmc esmcpep
 """
 
 from __future__ import annotations
@@ -39,7 +39,7 @@ def load_model(cfg: Config):
     if not hf_home.is_dir():
         raise SystemExit(
             f"HF cache not found at {hf_home}. Set models.hf_home in "
-            f"configs/paths.yaml, or export ANTIGEN_EMBEDDING_ROOT."
+            f"configs/paths.yaml, or export PLMBENCH_ROOT."
         )
     # from_pretrained takes the REGISTRY NAME, not a path; it resolves the
     # weights out of the cache under HF_HOME.

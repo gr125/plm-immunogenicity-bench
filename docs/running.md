@@ -17,12 +17,12 @@ Older pip reports `Directory '.' is not installable. File 'setup.py' not
 found.` You do not need to fix that — the package runs straight out of `src/`:
 
 ```bash
-export PYTHONPATH=$ANTIGEN_EMBEDDING_ROOT/src
-python -m antigen_embedding.check
+export PYTHONPATH=$PLMBENCH_ROOT/src
+python -m plmbench.check
 ```
 
 The `slurm/` templates already do this. The only things you give up are the
-`ae-*` console scripts; `python -m antigen_embedding.<module>` is equivalent and
+`plmbench-*` console scripts; `python -m plmbench.<module>` is equivalent and
 is what the docs use throughout. You still need the runtime dependencies
 (pandas, numpy, pyyaml, scikit-learn, umap-learn, seaborn, matplotlib,
 scikit-bio) in the active environment — the existing `ProtBert` conda env has
@@ -31,15 +31,15 @@ them.
 To get a modern pip instead: `python -m pip install --upgrade pip setuptools`.
 
 `configs/` is found automatically from the package location, from
-`$ANTIGEN_EMBEDDING_ROOT/configs`, or from the working directory — override with
-`$ANTIGEN_EMBEDDING_CONFIG` or `--config-dir` if it ever guesses wrong.
+`$PLMBENCH_ROOT/configs`, or from the working directory — override with
+`$PLMBENCH_CONFIG` or `--config-dir` if it ever guesses wrong.
 
 ## Preflight
 
 ```bash
-python -m antigen_embedding.check            # paths and sizes, <1 s
-python -m antigen_embedding.check --deep     # + key counts and vector shapes
-python -m antigen_embedding.check --coverage # + rows a real run would keep
+python -m plmbench.check            # paths and sizes, <1 s
+python -m plmbench.check --deep     # + key counts and vector shapes
+python -m plmbench.check --coverage # + rows a real run would keep
 ```
 
 Run this first on any new machine. It prints the resolved roots, which data
@@ -51,7 +51,7 @@ slow and memory-hungry where the ProtBert protein pickle is 11 GB.
 
 The repository root is resolved in this order:
 
-1. `$ANTIGEN_EMBEDDING_ROOT`
+1. `$PLMBENCH_ROOT`
 2. `--root` on the command line
 3. an absolute `root:` in `configs/paths.yaml`
 4. the directory containing `configs/` — i.e. a plain clone just works
@@ -59,7 +59,7 @@ The repository root is resolved in this order:
 On the cluster:
 
 ```bash
-export ANTIGEN_EMBEDDING_ROOT=/mnt/bioadhoc/Groups/Peters/Self-similarity
+export PLMBENCH_ROOT=/mnt/bioadhoc/Groups/Peters/Self-similarity
 ```
 
 That single variable replaces the `path = '/mnt/bioadhoc/...'` line that used to
@@ -73,8 +73,8 @@ separate, so you can clone the repo anywhere and still read the pickles in
 place:
 
 ```bash
-export ANTIGEN_EMBEDDING_ROOT=~/antigen-embedding                     # the clone
-export ANTIGEN_EMBEDDING_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity
+export PLMBENCH_ROOT=~/plm-immunogenicity-bench                     # the clone
+export PLMBENCH_PICKLES=/mnt/bioadhoc/Groups/Peters/Self-similarity
 ```
 
 or, equivalently, `--root` / `--pickles-root` on any command, or
@@ -89,7 +89,7 @@ The UMAP coordinates are committed (`results/umap/`, 12 MB, no embedding
 columns), so every figure regenerates from a clone:
 
 ```bash
-python -m antigen_embedding.analysis.umap_runner --plots-only
+python -m plmbench.analysis.umap_runner --plots-only
 ```
 
 ## The three variants
@@ -101,8 +101,8 @@ python -m antigen_embedding.analysis.umap_runner --plots-only
 | `no_anchor` | MHC I, plus `slice.trim_start: 2` / `trim_end: 1` | `remove_anchor_points.py` |
 
 ```bash
-python -m antigen_embedding.analysis.umap_runner --variant no_anchor
-python -m antigen_embedding.analysis.separability --variant full
+python -m plmbench.analysis.umap_runner --variant no_anchor
+python -m plmbench.analysis.separability --variant full
 ```
 
 `mhc_i.yaml` and `no_anchor.yaml` carry only their differences and pull the rest
@@ -113,7 +113,7 @@ forked files a reader has to diff to understand.
 ## Overriding without editing a config
 
 ```bash
-python -m antigen_embedding.analysis.umap_runner \
+python -m plmbench.analysis.umap_runner \
     --variant full --only esmc \
     --set umap.random_state=0 \
     --set filters.coord_ok=1
@@ -129,9 +129,9 @@ derive a peptide vector from it, and how to produce it. The embedding name
 selects the model and the checkpoint:
 
 ```bash
-python -m antigen_embedding.embed.esmc        esmc esmcpep
-python -m antigen_embedding.embed.protbert    protbert protbertpep
-python -m antigen_embedding.embed.peptidebert pepbert_sol pepbert_nf pepbert_hemo
+python -m plmbench.embed.esmc        esmc esmcpep
+python -m plmbench.embed.protbert    protbert protbertpep
+python -m plmbench.embed.peptidebert pepbert_sol pepbert_nf pepbert_hemo
 ```
 
 All three checkpoint atomically and resume, so a job killed at its time limit

@@ -18,7 +18,7 @@ Two behaviours changed, both bugs in the originals:
 Resume and checkpointing come from the shared base, so a killed job restarts
 where it stopped instead of from zero.
 
-    python -m antigen_embedding.embed.protbert protbert protbertpep
+    python -m plmbench.embed.protbert protbert protbertpep
 """
 
 from __future__ import annotations
