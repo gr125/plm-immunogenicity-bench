@@ -10,6 +10,30 @@ pip install -e .            # analysis only
 pip install -e '.[embed]'   # + torch / transformers / esm, to regenerate embeddings
 ```
 
+### No install (any pip, any conda env)
+
+`pip install -e .` on a `pyproject.toml`-only project needs **pip >= 21.3**.
+Older pip reports `Directory '.' is not installable. File 'setup.py' not
+found.` You do not need to fix that — the package runs straight out of `src/`:
+
+```bash
+export PYTHONPATH=$ANTIGEN_EMBEDDING_ROOT/src
+python -m antigen_embedding.check
+```
+
+The `slurm/` templates already do this. The only things you give up are the
+`ae-*` console scripts; `python -m antigen_embedding.<module>` is equivalent and
+is what the docs use throughout. You still need the runtime dependencies
+(pandas, numpy, pyyaml, scikit-learn, umap-learn, seaborn, matplotlib,
+scikit-bio) in the active environment — the existing `ProtBert` conda env has
+them.
+
+To get a modern pip instead: `python -m pip install --upgrade pip setuptools`.
+
+`configs/` is found automatically from the package location, from
+`$ANTIGEN_EMBEDDING_ROOT/configs`, or from the working directory — override with
+`$ANTIGEN_EMBEDDING_CONFIG` or `--config-dir` if it ever guesses wrong.
+
 ## Preflight
 
 ```bash

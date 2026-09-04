@@ -31,10 +31,37 @@ import yaml
 # .../src/antigen_embedding/config.py -> repo root is three levels up
 _PACKAGE_ROOT = Path(__file__).resolve().parent
 _REPO_ROOT = _PACKAGE_ROOT.parent.parent
-DEFAULT_CONFIG_DIR = _REPO_ROOT / "configs"
 
 ENV_ROOT = "ANTIGEN_EMBEDDING_ROOT"
 ENV_PICKLES = "ANTIGEN_EMBEDDING_PICKLES"
+ENV_CONFIG = "ANTIGEN_EMBEDDING_CONFIG"
+
+
+def default_config_dir() -> Path:
+    """Find configs/, whatever the install mode.
+
+    Package-relative works for an editable install and for PYTHONPATH=src. A
+    non-editable `pip install .` puts the package in site-packages, where it
+    does not, so fall back to the declared root and then the working directory.
+    """
+    candidates = []
+    env = os.environ.get(ENV_CONFIG)
+    if env:
+        candidates.append(Path(env))
+    candidates.append(_REPO_ROOT / "configs")
+    root_env = os.environ.get(ENV_ROOT)
+    if root_env:
+        candidates.append(Path(root_env) / "configs")
+    candidates.append(Path.cwd() / "configs")
+
+    for c in candidates:
+        if (c / "paths.yaml").is_file():
+            return c.resolve()
+    raise FileNotFoundError(
+        "could not find configs/paths.yaml. Looked in:\n  "
+        + "\n  ".join(str(c) for c in candidates)
+        + f"\nPass --config-dir, or set ${ENV_CONFIG}."
+    )
 
 
 def _read_yaml(path: Path) -> dict:
@@ -157,8 +184,7 @@ def load_config(
               read pickles left behind in another tree.
     overrides dotted variant keys to override, e.g. {"slice.trim_start": 2}.
     """
-    cdir = Path(config_dir) if config_dir else DEFAULT_CONFIG_DIR
-    cdir = cdir.resolve()
+    cdir = Path(config_dir).resolve() if config_dir else default_config_dir()
 
     paths = _read_yaml(cdir / "paths.yaml")
     registry = _read_yaml(cdir / "embeddings.yaml")
@@ -253,7 +279,8 @@ def add_config_args(parser) -> None:
     )
     parser.add_argument(
         "--config-dir", default=None,
-        help="directory holding paths.yaml, embeddings.yaml and variants/",
+        help=f"directory holding paths.yaml, embeddings.yaml and variants/ "
+             f"(overrides ${ENV_CONFIG}; normally found automatically)",
     )
     parser.add_argument(
         "--set", dest="overrides", action="append", default=[], metavar="KEY=VALUE",

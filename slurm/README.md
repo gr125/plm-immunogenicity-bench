@@ -21,8 +21,14 @@ else on the command line with `--variant` or `--set key=value`.
 | `umap.sh` | the UMAP runner for one variant | no |
 | `separability.sh` | silhouette / PERMANOVA / Fisher | no |
 
-Before submitting anything, run `python -m antigen_embedding.check` on a login
-node to confirm the paths resolve.
+These templates set `PYTHONPATH="$ANTIGEN_EMBEDDING_ROOT/src"` themselves, so
+nothing needs to be pip-installed. Before submitting anything, run
+
+```bash
+PYTHONPATH=$ANTIGEN_EMBEDDING_ROOT/src python -m antigen_embedding.check
+```
+
+on a login node to confirm the paths resolve.
 
 The embedders checkpoint atomically and resume, so a job that hits its time
 limit can simply be resubmitted.

@@ -16,6 +16,9 @@ cd "$ANTIGEN_EMBEDDING_ROOT"
 mkdir -p logs
 
 eval "$(/mnt/BioAdHoc/Groups/Peters/Self-similarity/tools/miniconda3/bin/conda shell.bash hook)"
+# No install needed: run the package straight out of src/. Works on any pip.
+export PYTHONPATH="$ANTIGEN_EMBEDDING_ROOT/src:${PYTHONPATH:-}"
+
 conda activate "${CONDA_ENV:-ProtBert}"
 
 # VARIANT=no_anchor sbatch slurm/umap.sh
