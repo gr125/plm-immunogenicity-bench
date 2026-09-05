@@ -1,0 +1,44 @@
+# Every path in this repo, in one place.
+#
+# Paths are relative to the repository root unless they are absolute. The root
+# is resolved in this order:
+#   1. $PLMBENCH_ROOT
+#   2. the `root:` key below, if it is an absolute path
+#   3. the directory containing configs/ (i.e. the repo itself)
+#
+# On the cluster, either export PLMBENCH_ROOT or set:
+#   root: /mnt/bioadhoc/Groups/Peters/Self-similarity
+root: null
+
+# Where the embedding pickles live, if not under `root`. This is the cluster
+# case: the repo is a ~20 MB clone anywhere you like, while the 19 GB of
+# pickles stay in the original tree. Overridden by $PLMBENCH_PICKLES
+# or --pickles-root. null means "same as root".
+#   embeddings_root: /mnt/bioadhoc/Groups/Peters/Self-similarity
+embeddings_root: null
+
+data:
+  # Normalized tables committed to the repo (see data/README.md).
+  epitopes:  data/epitopes.csv.gz            # one row per peptide-MHC-antigen; protein_id FK
+  proteins:  data/proteins.csv.gz            # unique antigen sequences, keyed by content hash
+  antigens:  data/antigens.csv.gz            # curated_source_antigen_iri -> protein_id
+  taxonomy:  data/epitopes_taxonomy.csv.gz   # assay-level table + 12 resolved NCBI ranks
+  annotated: data/epitopes_annotated.csv.gz  # same, before taxonomy resolution
+  subset:    data/subset.csv                 # small dev sample (different schema)
+
+results:
+  umap:    results/umap
+  metrics: results/metrics
+  figures: results/figures
+  qc:      results/qc
+
+models:
+  # HuggingFace cache for ESMC. Must contain hub/models--EvolutionaryScale--esmc-300m-2024-12.
+  hf_home: analysis/ESM-embedding/hf_home
+  esmc_registry_name: esmc_300m
+  protbert_name: Rostlab/prot_bert
+  # PeptideBERT fine-tuned checkpoints; each subdir holds config.yaml + model.pt.
+  peptidebert_checkpoints: analysis/PeptideBERT/PeptideBERT/checkpoints
+
+cache:
+  taxonomy: data/taxonomy_cache.pkl

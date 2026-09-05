@@ -1,0 +1,51 @@
+# ---- Model weights (fetch at runtime; see configs/models/) ----
+# ProtBert: huggingface.co/Rostlab/prot_bert
+analysis/ProtBert/prot_bert/
+# ESMC-300M: three redundant copies of the same 1.33 GB checkpoint
+analysis/ESM-embedding/hf_home/
+analysis/ESM-embedding/hf_local_cache/
+analysis/ESM-embedding/source/
+# PeptideBERT: vendored fork of github.com/ChakradharG/PeptideBERT
+analysis/PeptideBERT/PeptideBERT/
+*.pth
+*.pt
+*.bin
+*.safetensors
+
+# ---- Embedding intermediates (regenerable; 19 GB) ----
+*.pkl
+*.npy
+*.npz
+!data/taxonomy_cache.pkl
+
+# ---- rsync / mirror artifacts ----
+.*.csv.??????????
+*.csv.tmp
+*.pkl.tmp
+# NOTE: results/ is NOT ignored. results/umap/ holds the slim coordinate tables
+# (12 MB, no embedding columns) and results/figures/ the 58 PNGs -- committing
+# both is what lets every figure regenerate from the repo alone.
+
+# ---- Cluster job logs ----
+job-*.out
+out.txt
+out2.txt
+x.txt
+
+# ---- OS / editor / Python ----
+.DS_Store
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# ---- Secrets ----
+.env
+*.token
+
+# ---- packaging ----
+*.egg-info/
+build/
+dist/
+logs/

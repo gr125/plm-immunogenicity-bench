@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "plm-immunogenicity-bench"
+version = "0.1.0"
+description = "Do protein language model embeddings separate immunogenic from non-immunogenic antigens?"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "pyyaml>=6.0",
+    "scikit-learn>=1.3",
+    "umap-learn>=0.5",
+    "seaborn>=0.12",
+    "matplotlib>=3.7",
+    "scikit-bio>=0.6",
+    "tqdm",
+]
+
+[project.optional-dependencies]
+# Only needed to regenerate embeddings; the analyses run from the committed
+# coordinates without them.
+embed = ["torch", "transformers", "esm"]
+
+[project.scripts]
+plmbench-check = "plmbench.check:main"
+plmbench-umap = "plmbench.analysis.umap_runner:main"
+plmbench-separability = "plmbench.analysis.separability:main"
+plmbench-taxonomy = "plmbench.data.taxonomy:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

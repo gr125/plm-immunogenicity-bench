@@ -1,0 +1,16 @@
+# Ablation: MHC class I peptides only.
+# Replaces downstream_umap_mhcI.py.
+extends: full.yaml
+name: mhc_i
+
+embeddings: [protbert, protbertpep, pepbert_sol]
+
+filters:
+  mhc_class: "I"
+
+output:
+  umap_dir: results/umap/mhc_i
+  figures_dir: results/figures/mhc_i
+
+plots:
+  domains: [Viruses]
